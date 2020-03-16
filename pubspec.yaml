@@ -1,5 +1,22 @@
 name: nextcloud_sync
-version: 1.0.0
+description: A new Flutter project.
+version: 1.0.0+1
+
+environment:
+  sdk: ">=2.1.0 <3.0.0"
 
 dependencies:
- nextcloud:
+  flutter:
+    sdk: flutter
+  nextcloud:
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+  fonts:
+    - family: Roboto
+      fonts:
+        - asset: fonts/Roboto-Regular.ttf

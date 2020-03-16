@@ -1,10 +1,47 @@
-import 'dart:convert';
-import 'dart:io';
+import 'package:flutter/material.dart';
 
-import 'package:nextcloud/nextcloud.dart';
-import 'package:nextcloud_sync/config.dart';
+void main() => runApp(MyApp());
 
-void main() {
-  final parsed = json.decode(File('config.json').readAsStringSync());
-  final config = Config.fromJson(parsed);
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Nextcloud Sync',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        fontFamily: 'Roboto',
+      ),
+      home: MyHomePage(),
+    );
+  }
+}
+
+class MyHomePage extends StatefulWidget {
+  MyHomePage({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  _MyHomePageState createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Nextcloud Sync'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Text(
+              'You have pushed the button this many times:',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
