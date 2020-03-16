@@ -9,6 +9,9 @@ dependencies:
   flutter:
     sdk: flutter
   nextcloud:
+  dio:
+  shared_preferences:
+  after_layout:
 
 dev_dependencies:
   flutter_test:
