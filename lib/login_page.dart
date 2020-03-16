@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:nextcloud_sync/keys.dart';
+import 'package:nextcloud_sync/static.dart';
 
 // ignore: public_member_api_docs
 class _LoginPage extends StatefulWidget {
@@ -14,9 +16,9 @@ class _LoginPageState extends State<_LoginPage> {
   final FocusNode _passwordFieldFocus = FocusNode();
   final FocusNode _submitButtonFocus = FocusNode();
   final TextEditingController _usernameFieldController =
-  TextEditingController();
+      TextEditingController();
   final TextEditingController _passwordFieldController =
-  TextEditingController();
+      TextEditingController();
 
   bool _checkingLogin = false;
 
@@ -36,9 +38,7 @@ class _LoginPageState extends State<_LoginPage> {
         ..options = BaseOptions(
           headers: {
             'authorization':
-            'Basic ${base64.encode(utf8.encode(
-                '${_usernameFieldController.text}:${_passwordFieldController
-                    .text}'))}',
+                'Basic ${base64.encode(utf8.encode('${_usernameFieldController.text}:${_passwordFieldController.text}'))}',
           },
           responseType: ResponseType.plain,
           connectTimeout: 3000,
@@ -48,8 +48,18 @@ class _LoginPageState extends State<_LoginPage> {
       final response = await dio.get(
         'https://ldap.vs-ac.de/login',
       );
-      print(response.toString());
-      // TODO: add check
+      if (json.decode(response.data)['status']) {
+        Static.sharedPreferences
+            .setString(Keys.username, _usernameFieldController.text);
+        Static.sharedPreferences
+            .setString(Keys.password, _passwordFieldController.text);
+        Navigator.of(context).pushReplacementNamed('/');
+      } else {
+        _passwordFieldController.text = '';
+        Scaffold.of(context).showSnackBar(SnackBar(
+          content: Text('Username oder Passwort falsch'),
+        ));
+      }
       setState(() {
         _checkingLogin = false;
       });
@@ -72,9 +82,7 @@ class _LoginPageState extends State<_LoginPage> {
         hintText: 'Username',
         focusedBorder: UnderlineInputBorder(
           borderSide: BorderSide(
-            color: Theme
-                .of(context)
-                .accentColor,
+            color: Theme.of(context).accentColor,
             width: 2,
           ),
         ),
@@ -91,9 +99,7 @@ class _LoginPageState extends State<_LoginPage> {
         hintText: 'Passwort',
         focusedBorder: UnderlineInputBorder(
           borderSide: BorderSide(
-            color: Theme
-                .of(context)
-                .accentColor,
+            color: Theme.of(context).accentColor,
             width: 2,
           ),
         ),
@@ -111,11 +117,7 @@ class _LoginPageState extends State<_LoginPage> {
       child: FlatButton(
         focusNode: _submitButtonFocus,
         onPressed: _submitLogin,
-        child: _checkingLogin
-            ? CircularProgressIndicator()
-            : Text(
-            'Anmelden'
-        ),
+        child: _checkingLogin ? CircularProgressIndicator() : Text('Anmelden'),
       ),
     );
     return Center(
@@ -137,8 +139,7 @@ class _LoginPageState extends State<_LoginPage> {
 // ignore: public_member_api_docs
 class LoginPageWrapper extends StatelessWidget {
   @override
-  Widget build(BuildContext context) =>
-      Scaffold(
+  Widget build(BuildContext context) => Scaffold(
         body: _LoginPage(),
       );
 }

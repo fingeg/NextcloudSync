@@ -5,7 +5,6 @@ import 'package:nextcloud_sync/static.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Future main() async {
-  Static.sharedPreferences = await SharedPreferences.getInstance();
   runApp(MyApp());
 }
 
