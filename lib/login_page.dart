@@ -53,6 +53,8 @@ class _LoginPageState extends State<_LoginPage> {
             .setString(Keys.username, _usernameFieldController.text);
         Static.sharedPreferences
             .setString(Keys.password, _passwordFieldController.text);
+        Static.sharedPreferences
+            .setString(Keys.grade, json.decode(response.data)['grade']);
         Navigator.of(context).pushReplacementNamed('/');
       } else {
         _passwordFieldController.text = '';

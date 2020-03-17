@@ -3,7 +3,7 @@ description: A new Flutter project.
 version: 1.0.0+1
 
 environment:
-  sdk: ">=2.1.0 <3.0.0"
+  sdk: ">=2.7.0 <3.0.0"
 
 dependencies:
   flutter:
@@ -12,6 +12,7 @@ dependencies:
   dio:
   shared_preferences:
   after_layout:
+  folder_picker:
 
 dev_dependencies:
   flutter_test:
