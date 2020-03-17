@@ -114,11 +114,9 @@ class _HomePageState extends Interactor<HomePage>
               child: Column(
                 children: <Widget>[
                   Text(
-                    'Die drei Listen sind die möglichen Orte an denen Aufgaben zu finden sein können. '
-                    'Damit Ordner in den angegebenen Zielordner herunter geladen werden einfach auf die gewüschten '
-                    'Ordner klicken. '
-                    'Ein erneuter klick sorgt dafür, dass der Ordner nicht heruntergeladen wird, aber dir trotztdem '
-                    'angezeigt wird ob sich dessen Inhalt verändert hat.',
+                    'Die drei Listen sind die Orte an denen alle Aufgaben zu finden sein sollten. '
+                    'Um den Modus eines Ordners umzustellen, reicht ein einfacher Klick auf den gewünschten Ordner. '
+                    'Es gibt folgende Symbole:',
                     overflow: TextOverflow.visible,
                   ),
                   Container(height: 20),
@@ -134,7 +132,7 @@ class _HomePageState extends Interactor<HomePage>
                     Container(
                       width: MediaQuery.of(context).size.width - 200,
                       child: Text(
-                        'Ein Ordner ist neu in der Cloud erschinen',
+                        'Ein Ordner ist neu in der Cloud erschienen',
                         overflow: TextOverflow.visible,
                       ),
                     ),
@@ -173,7 +171,7 @@ class _HomePageState extends Interactor<HomePage>
                     Container(
                       width: MediaQuery.of(context).size.width - 200,
                       child: Text(
-                        'Dateien im Ordner haben sich verändert. Durch einen klick auf den'
+                        'Dateien im Ordner haben sich verändert. Durch einen Klick auf den'
                         ' Ordner können die Änderungen angesehen werden. Danach verschwinden'
                         ' die Änderungen wieder.',
                         overflow: TextOverflow.visible,
@@ -194,7 +192,7 @@ class _HomePageState extends Interactor<HomePage>
                     Container(
                       width: MediaQuery.of(context).size.width - 200,
                       child: Text(
-                        'Ordner soll verglichen und heruntergeladen werden',
+                        'Der Ordner soll verglichen und heruntergeladen werden',
                         overflow: TextOverflow.visible,
                       ),
                     ),
@@ -212,7 +210,7 @@ class _HomePageState extends Interactor<HomePage>
                     Container(
                       width: MediaQuery.of(context).size.width - 200,
                       child: Text(
-                        'Ordner soll nur verglichen werden',
+                        'Der Ordner soll nur verglichen werden',
                         overflow: TextOverflow.visible,
                       ),
                     ),
@@ -407,7 +405,7 @@ class _HomePageState extends Interactor<HomePage>
                     child: TextField(
                       controller: _localRootDirectory,
                       decoration: InputDecoration(
-                        hintText: 'Zielorder',
+                        hintText: 'Zielordner',
                       ),
                       onChanged: (value) => Static.sharedPreferences
                           .setString(Keys.rootDirLocal, value),
@@ -432,8 +430,8 @@ class _HomePageState extends Interactor<HomePage>
               Container(
                 padding: EdgeInsets.only(left: 20),
                 child: Text(
-                  'Keine Dateien im Zielornder speicher, '
-                  'die werden bei syncronisieren Überschrieben!',
+                  'Keine Dateien im Zielordner speichern, '
+                  'da diese bei Synchronisierungen überschrieben werden!',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
