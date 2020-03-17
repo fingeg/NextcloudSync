@@ -6,4 +6,5 @@ class Keys {
   static const selection = 'selection';
   static const folders = 'folders';
   static const summary = 'summary';
+  static const showInfo = 'showInfo';
 }

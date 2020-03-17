@@ -15,8 +15,8 @@ const possibleDirs = [
 
 enum FileState {
   none,
-  selected,
   watching,
+  selected,
 }
 
 class Dir extends WebDavFile {
@@ -35,6 +35,7 @@ class Dir extends WebDavFile {
   List<String> changedFiles = [];
   bool get isChanged => changedFiles.length > 0;
   bool isLoading = false;
+  bool failedDownload = false;
 
   FileState get _state => FileState
       .values[Static.sharedPreferences.getInt(Keys.selection + path) ?? 0];
@@ -84,8 +85,21 @@ class Cloud {
     }
     print('Load: $index');
     _isLoading[index] = true;
-    allPossibleDirs[index] = await getSubDirs(getPaths()[index]);
+    final dirs = await getSubDirs(getPaths()[index]);
+    allPossibleDirs[index] =
+        dirs.where((d) => !d.name.startsWith('vs-')).toList();
     _isLoading[index] = false;
+  }
+
+  Future<List<int>> loadZip(String path, {int count = 0}) async {
+    if (count >= 3) {
+      return null;
+    }
+    try {
+      return client.webDav.downloadDirectoryAsZip(path);
+    } on RequestException {
+      return loadZip(path, count: ++count);
+    }
   }
 
   Future loadDir(Dir directory, bool asFile, EventBus eventBus) async {
@@ -94,7 +108,15 @@ class Cloud {
     }
     directory.isLoading = true;
     eventBus.publish(directory);
-    final dir = await client.webDav.downloadDirectoryAsZip(directory.path);
+
+    final dir = await loadZip(directory.path);
+    if (dir == null) {
+      print('Failed to download: ${directory.name}');
+      directory.isLoading = false;
+      directory.failedDownload = true;
+      eventBus.publish(directory);
+      return;
+    }
     print('downloaded: ${directory.name}');
 
     String path = Static.sharedPreferences.getString(Keys.rootDirLocal);
@@ -140,6 +162,7 @@ class Cloud {
 
     directory.changedFiles = changed;
     directory.isLoading = false;
+    directory.failedDownload = false;
     eventBus.publish(directory);
   }
 

@@ -38,6 +38,9 @@ class _HomePageState extends Interactor<HomePage>
       initialized = true;
     });
     update(isInit: true);
+    if (Static.sharedPreferences.getBool(Keys.showInfo) ?? true) {
+      info();
+    }
   }
 
   void update({isInit = false}) {
@@ -104,6 +107,7 @@ class _HomePageState extends Interactor<HomePage>
         context: context,
         barrierDismissible: false, // user must tap button!
         builder: (BuildContext context) {
+          Static.sharedPreferences.setBool(Keys.showInfo, false);
           return AlertDialog(
             title: Text('Anleitung'),
             content: SingleChildScrollView(
@@ -295,7 +299,17 @@ class _HomePageState extends Interactor<HomePage>
                           height: 40,
                           child: Stack(
                             children: <Widget>[
-                              if (dir.isLoading)
+                              if (dir.failedDownload)
+                                Positioned(
+                                  right: 10,
+                                  top: 10,
+                                  child: Icon(
+                                    Icons.warning,
+                                    color: Colors.red,
+                                    size: 16,
+                                  ),
+                                )
+                              else if (dir.isLoading)
                                 Positioned(
                                   right: 10,
                                   top: 10,
