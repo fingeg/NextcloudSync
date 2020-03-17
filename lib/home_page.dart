@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:after_layout/after_layout.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:folder_picker/folder_picker.dart';
+import 'package:flutter_event_bus/flutter_event_bus.dart';
 import 'package:nextcloud_sync/cloud.dart';
 import 'package:nextcloud_sync/keys.dart';
 import 'package:nextcloud_sync/static.dart';
@@ -18,7 +18,8 @@ class HomePage extends StatefulWidget {
   _HomePageState createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> with AfterLayoutMixin<HomePage> {
+class _HomePageState extends Interactor<HomePage>
+    with AfterLayoutMixin<HomePage> {
   Cloud cloud = Cloud();
   TextEditingController _localRootDirectory = TextEditingController();
   bool initialized = false;
@@ -41,16 +42,63 @@ class _HomePageState extends State<HomePage> with AfterLayoutMixin<HomePage> {
 
   void update({isInit = false}) {
     if (!isInit) {
+      if (cloud.isLoading) {
+        return;
+      }
       setState(() {
-        cloud.allPossibleDirs = [null, null, null];
+        cloud.allPossibleDirs =
+            List.generate(cloud.getPaths().length, (index) => null);
       });
     }
-    cloud.load(0).then((_) => setState(() => null));
-    cloud.load(1).then((_) => setState(() => null));
-    cloud.load(2).then((_) => setState(() => null));
+    for (int i = 0; i < cloud.allPossibleDirs.length; i++) {
+      cloud.load(i).then((_) {
+        setState(() => null);
+        sync(i);
+      });
+    }
   }
 
-  void sync() {}
+  void sync(int index) {
+    final eventBus = EventBus.of(context);
+    final all = (cloud.allPossibleDirs[index] ?? []);
+    all
+        .where((i) => i.state == FileState.selected)
+        .forEach((i) => cloud.loadDir(i, true, eventBus));
+    all
+        .where((i) => i.state == FileState.watching)
+        .forEach((i) => cloud.loadDir(i, false, eventBus));
+  }
+
+  void showChanges(Dir dir) => showDialog<void>(
+        context: context,
+        barrierDismissible: false, // user must tap button!
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Geänderte Dateien'),
+            content: SingleChildScrollView(
+              child: ListBody(
+                children: List.generate(
+                  dir.changedFiles.length,
+                  (index) => Container(
+                    padding: EdgeInsets.all(10),
+                    child: Text(dir.changedFiles[index]),
+                  ),
+                ),
+              ),
+            ),
+            actions: <Widget>[
+              FlatButton(
+                child: Text('Okay'),
+                onPressed: () {
+                  dir.changedFiles = [];
+                  EventBus.of(context).publish(dir);
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
 
   void info() => showDialog<void>(
         context: context,
@@ -59,30 +107,117 @@ class _HomePageState extends State<HomePage> with AfterLayoutMixin<HomePage> {
           return AlertDialog(
             title: Text('Anleitung'),
             content: SingleChildScrollView(
-              child: ListBody(
+              child: Column(
                 children: <Widget>[
                   Text(
-                      'Die drei Listen sind die möglichen Orte an denen Aufgaben zu finden sein können. '
-                      'Damit Ordner in den angegebenen Zielordner herunter geladen werden einfach auf die gewüschten '
-                      'Ordner klicken. '
-                      'Ein erneuter klick sorgt dafür, dass der Ordner nicht heruntergeladen wird, aber dir trotztdem '
-                      'angezeigt wird ob sich dessen Inhalt verändert hat.'),
+                    'Die drei Listen sind die möglichen Orte an denen Aufgaben zu finden sein können. '
+                    'Damit Ordner in den angegebenen Zielordner herunter geladen werden einfach auf die gewüschten '
+                    'Ordner klicken. '
+                    'Ein erneuter klick sorgt dafür, dass der Ordner nicht heruntergeladen wird, aber dir trotztdem '
+                    'angezeigt wird ob sich dessen Inhalt verändert hat.',
+                    overflow: TextOverflow.visible,
+                  ),
+                  Container(height: 20),
+                  Row(children: <Widget>[
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Icon(
+                        Icons.plus_one,
+                        color: Colors.green,
+                        size: 16,
+                      ),
+                    ),
+                    Container(
+                      width: MediaQuery.of(context).size.width - 200,
+                      child: Text(
+                        'Ein Ordner ist neu in der Cloud erschinen',
+                        overflow: TextOverflow.visible,
+                      ),
+                    ),
+                  ]),
+                  Container(height: 20),
+                  Row(children: <Widget>[
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: SizedBox(
+                        height: 16,
+                        width: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 1,
+                          backgroundColor: Colors.white,
+                        ),
+                      ),
+                    ),
+                    Container(
+                      width: MediaQuery.of(context).size.width - 200,
+                      child: Text(
+                        'Ein Ordner wird gerade heruntergeladen oder verglichen',
+                        overflow: TextOverflow.visible,
+                      ),
+                    ),
+                  ]),
+                  Container(height: 20),
+                  Row(children: <Widget>[
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Icon(
+                        Icons.update,
+                        color: Colors.orange,
+                        size: 16,
+                      ),
+                    ),
+                    Container(
+                      width: MediaQuery.of(context).size.width - 200,
+                      child: Text(
+                        'Dateien im Ordner haben sich verändert. Durch einen klick auf den'
+                        ' Ordner können die Änderungen angesehen werden. Danach verschwinden'
+                        ' die Änderungen wieder.',
+                        overflow: TextOverflow.visible,
+                        softWrap: true,
+                      ),
+                    ),
+                  ]),
+                  Container(height: 20),
+                  Row(children: <Widget>[
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Icon(
+                        Icons.check_circle,
+                        color: Colors.green,
+                        size: 16,
+                      ),
+                    ),
+                    Container(
+                      width: MediaQuery.of(context).size.width - 200,
+                      child: Text(
+                        'Ordner soll verglichen und heruntergeladen werden',
+                        overflow: TextOverflow.visible,
+                      ),
+                    ),
+                  ]),
+                  Container(height: 20),
+                  Row(children: <Widget>[
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Icon(
+                        Icons.check_circle_outline,
+                        color: Colors.green,
+                        size: 16,
+                      ),
+                    ),
+                    Container(
+                      width: MediaQuery.of(context).size.width - 200,
+                      child: Text(
+                        'Ordner soll nur verglichen werden',
+                        overflow: TextOverflow.visible,
+                      ),
+                    ),
+                  ]),
                   Container(height: 20),
                   Text(
-                      'Wenn ein Ordner neu erschienen ist, siehst du rechts neben dem Ordner eine \'+1\' und oben in der '
-                      'Überschrift die Anzahl der neuen Ordner.'),
-                  Container(height: 20),
-                  Text(
-                      'Wenn du auf einen der Ordner klickst, wird der nach ein paar sekunden automatisch herunter '
-                      'geladen. Ein aktuell laufender Ladeprozess kann immer an einer Prozenanzeige und einem Ladeindikator '
-                      'in einer Spaltenünberschrift gesehen werden.'),
-                  Container(height: 20),
-                  Text(
-                      'Um nach einer Zeit die Ordner neu zu laden und damit auch die ausgewählten Ordner'
-                      ' herunterzuladen gibt es oben den download Button'),
-                  Container(height: 20),
-                  Text(
-                      'Bei Fragen und Fehlern einfach an cloud-sync@fingeg.de wenden')
+                    'Bei Fragen und Fehlern einfach an cloud-sync@fingeg.de wenden',
+                    overflow: TextOverflow.visible,
+                  )
                 ],
               ),
             ),
@@ -160,7 +295,30 @@ class _HomePageState extends State<HomePage> with AfterLayoutMixin<HomePage> {
                           height: 40,
                           child: Stack(
                             children: <Widget>[
-                              if (dir.isNew)
+                              if (dir.isLoading)
+                                Positioned(
+                                  right: 10,
+                                  top: 10,
+                                  child: SizedBox(
+                                    height: 16,
+                                    width: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 1,
+                                      backgroundColor: Colors.white,
+                                    ),
+                                  ),
+                                )
+                              else if (dir.isChanged)
+                                Positioned(
+                                  right: 10,
+                                  top: 10,
+                                  child: Icon(
+                                    Icons.update,
+                                    color: Colors.orange,
+                                    size: 16,
+                                  ),
+                                )
+                              else if (dir.isNew)
                                 Positioned(
                                   right: 10,
                                   top: 10,
@@ -185,9 +343,15 @@ class _HomePageState extends State<HomePage> with AfterLayoutMixin<HomePage> {
                               Positioned.fill(
                                 child: FlatButton(
                                   padding: EdgeInsets.all(0),
-                                  onPressed: () => setState(() {
-                                    dir.toggleSelection();
-                                  }),
+                                  onPressed: () {
+                                    if (dir.isChanged) {
+                                      showChanges(dir);
+                                    } else {
+                                      setState(() {
+                                        dir.toggleSelection();
+                                      });
+                                    }
+                                  },
                                   child: Text(name),
                                 ),
                               ),
@@ -239,7 +403,25 @@ class _HomePageState extends State<HomePage> with AfterLayoutMixin<HomePage> {
               ),
               Padding(
                 padding: EdgeInsets.only(left: 20),
-                child: Text('Für eine Anleitung oben auf das i klicken'),
+                child: Row(
+                  children: <Widget>[
+                    Text('Für eine Anleitung oben auf das'),
+                    Icon(
+                      Icons.info,
+                      color: Colors.blue,
+                      size: 17,
+                    ),
+                    Text('klicken'),
+                  ],
+                ),
+              ),
+              Container(
+                padding: EdgeInsets.only(left: 20),
+                child: Text(
+                  'Keine Dateien im Zielornder speicher, '
+                  'die werden bei syncronisieren Überschrieben!',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
               ),
               Padding(
                 padding: EdgeInsets.all(20),
@@ -255,4 +437,8 @@ class _HomePageState extends State<HomePage> with AfterLayoutMixin<HomePage> {
       }),
     );
   }
+
+  @override
+  Subscription subscribeEvents(EventBus eventBus) =>
+      eventBus.respond<Dir>((event) => setState(() => null));
 }

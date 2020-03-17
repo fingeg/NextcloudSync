@@ -9,7 +9,7 @@ packages:
     source: hosted
     version: "1.0.7+2"
   archive:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: archive
       url: "https://pub.dartlang.org"
@@ -58,19 +58,12 @@ packages:
     source: hosted
     version: "2.1.1"
   crypto:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: crypto
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.3"
-  cupertino_icons:
-    dependency: transitive
-    description:
-      name: cupertino_icons
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.1.3"
   dio:
     dependency: "direct main"
     description:
@@ -78,32 +71,18 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.0.9"
-  filesize:
-    dependency: transitive
-    description:
-      name: filesize
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.0.4"
-  filex:
-    dependency: transitive
-    description:
-      name: filex
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.2.2"
   flutter:
     dependency: "direct main"
     description: flutter
     source: sdk
     version: "0.0.0"
-  flutter_slidable:
-    dependency: transitive
+  flutter_event_bus:
+    dependency: "direct main"
     description:
-      name: flutter_slidable
+      name: flutter_event_bus
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.5.4"
+    version: "0.0.2"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -114,13 +93,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  folder_picker:
-    dependency: "direct main"
-    description:
-      name: folder_picker
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.3.0"
   http:
     dependency: transitive
     description:
@@ -169,14 +141,7 @@ packages:
       name: nextcloud
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.15"
-  open_file:
-    dependency: transitive
-    description:
-      name: open_file
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.1.1"
+    version: "1.0.16"
   path:
     dependency: transitive
     description:
@@ -205,13 +170,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.5"
-  rxdart:
-    dependency: transitive
-    description:
-      name: rxdart
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.22.6"
   shared_preferences:
     dependency: "direct main"
     description:

@@ -5,4 +5,5 @@ class Keys {
   static const rootDirLocal = 'rootDir-local';
   static const selection = 'selection';
   static const folders = 'folders';
+  static const summary = 'summary';
 }

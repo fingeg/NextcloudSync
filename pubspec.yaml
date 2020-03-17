@@ -12,7 +12,9 @@ dependencies:
   dio:
   shared_preferences:
   after_layout:
-  folder_picker:
+  archive:
+  crypto:
+  flutter_event_bus:
 
 dev_dependencies:
   flutter_test:
