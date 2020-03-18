@@ -7,6 +7,7 @@ import 'package:flutter_event_bus/flutter_event_bus.dart';
 import 'package:nextcloud_sync/cloud.dart';
 import 'package:nextcloud_sync/keys.dart';
 import 'package:nextcloud_sync/static.dart';
+import 'package:nextcloud_sync/usersync.dart';
 import 'package:nextcloud_sync/views/directoryColumn.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -62,6 +63,7 @@ class _HomePageState extends Interactor<HomePage>
         sync(i);
       });
     }
+    syncUsage();
   }
 
   void sync(int index) {

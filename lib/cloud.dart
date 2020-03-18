@@ -99,6 +99,7 @@ class Cloud {
     try {
       return client.webDav.downloadDirectoryAsZip(path);
     } on RequestException {
+      print('Failed to download zip: $path ($count)');
       return loadZip(path, count: ++count);
     }
   }

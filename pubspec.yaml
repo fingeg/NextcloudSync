@@ -15,6 +15,7 @@ dependencies:
   archive:
   crypto:
   flutter_event_bus:
+  package_info:
 
 dev_dependencies:
   flutter_test:
