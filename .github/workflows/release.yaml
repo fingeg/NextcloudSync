@@ -48,7 +48,7 @@ jobs:
           sudo usermod -aG docker runner
           sudo setfacl -m user:runner:rw /var/run/docker.sock
       - name: Build desktop apps
-        run: sudo ./scripts/build-desktop.sh --docker
+        run: ./scripts/build-desktop.sh --docker
       - name: Upload release artifacts
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

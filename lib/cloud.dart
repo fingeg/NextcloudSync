@@ -35,7 +35,8 @@ class Dir extends WebDavFile {
   List<String> changedFiles = [];
   bool get isChanged => changedFiles.length > 0;
   bool isLoading = false;
-  bool failedDownload = false;
+  String failMsg;
+  bool get failedDownload => failMsg != null;
 
   FileState get _state => FileState
       .values[Static.sharedPreferences.getInt(Keys.selection + path) ?? 0];
@@ -74,7 +75,7 @@ class Cloud {
     final grade = Static.sharedPreferences.getString(Keys.grade);
     return [
       'Eigene Dateien/Geteilte Dateien',
-      'Eigene Dateien/Geteilte Dateien/vs-material/${grade.toUpperCase()}',
+      'Eigene Dateien/Geteilte Dateien/vs-material/${int.tryParse(grade[0]) == null ? grade.toUpperCase() : grade.toLowerCase()}',
       'Tausch/Klasse $grade',
     ];
   }
@@ -98,10 +99,18 @@ class Cloud {
     }
     try {
       return client.webDav.downloadDirectoryAsZip(path);
-    } on RequestException {
-      print('Failed to download zip: $path ($count)');
+    } catch (e) {
+      print('Failed to download zip: $path ($count)\n$e');
       return loadZip(path, count: ++count);
     }
+  }
+
+  String _trimPath(String path) {
+    path = path.replaceAll('\\', '/').replaceAll(RegExp(r'\\/+'), '/');
+    if (path.split('').last != '/') {
+      path += '/';
+    }
+    return path;
   }
 
   Future loadDir(Dir directory, bool asFile, EventBus eventBus) async {
@@ -115,27 +124,37 @@ class Cloud {
     if (dir == null) {
       print('Failed to download: ${directory.name}');
       directory.isLoading = false;
-      directory.failedDownload = true;
+      directory.failMsg = "Fehler auf der Cloud";
       eventBus.publish(directory);
       return;
     }
     print('downloaded: ${directory.name}');
 
-    String path = Static.sharedPreferences.getString(Keys.rootDirLocal);
-    if (path.split('').last != '/') {
-      path += '/';
-    }
+    String path =
+        _trimPath(Static.sharedPreferences.getString(Keys.rootDirLocal));
 
     final archive = ZipDecoder().decodeBytes(dir);
 
-    if (asFile && Directory('$path${directory.name}').existsSync()) {
-      Directory('$path/${directory.name}').deleteSync(recursive: true);
+    try {
+      if (asFile && Directory('$path${directory.name}').existsSync()) {
+        Directory('$path${directory.name}').deleteSync(recursive: true);
+      }
+    } catch (e) {
+      print('Failed to delete: $e');
+      directory.failMsg =
+          'Kann die Datei nicht löschen. Schließe bitte alle Programme'
+          ' in dem der Ordner verwendet wird';
+      directory.isLoading = false;
+      eventBus.publish(dir);
+      return;
     }
 
     final key = Keys.summary + directory.path;
+    final isFirstTime = Static.sharedPreferences.getString(key) == null;
     final last = json.decode(Static.sharedPreferences.getString(key) ?? '{}');
     Map<String, String> summary = {};
     List<String> changed = [];
+    String failMsg;
 
     // Extract the contents of the Zip archive to disk.
     for (final file in archive) {
@@ -145,18 +164,29 @@ class Cloud {
 
         // Check if the file changed or is new
         summary[filename] = sha256.convert(data).toString();
-        if (!last.keys.contains(filename) ||
-            last[filename] != summary[filename]) {
+        if (!isFirstTime &&
+            (!last.keys.contains(filename) ||
+                last[filename] != summary[filename])) {
           changed.add(filename);
         }
 
         if (asFile) {
-          File(path + filename)
-            ..createSync(recursive: true)
-            ..writeAsBytesSync(data);
+          try {
+            File(path + filename)
+              ..createSync(recursive: true)
+              ..writeAsBytesSync(data);
+          } catch (e) {
+            print('Failed to store file: $e');
+            failMsg = 'Fehler beim erstellen der Datei $filename';
+          }
         }
       } else if (asFile) {
-        Directory(path + filename)..create(recursive: true);
+        try {
+          Directory(path + filename)..create(recursive: true);
+        } catch (e) {
+          print('Failed to store file: $e');
+          failMsg = 'Fehler beim erstellen des Ordners $filename';
+        }
       }
     }
 
@@ -164,23 +194,23 @@ class Cloud {
 
     directory.changedFiles = changed;
     directory.isLoading = false;
-    directory.failedDownload = false;
+    directory.failMsg = failMsg;
     eventBus.publish(directory);
   }
 
   Future<List<Dir>> getSubDirs(String path, {int retryCount = 0}) async {
     print('Get sub dirs of $path ($retryCount)');
-    final folders =
-        Static.sharedPreferences.getStringList(Keys.folders + path) ?? [];
+    final folders = Static.sharedPreferences.getStringList(Keys.folders + path);
     List<Dir> directories = [];
     try {
       directories = (await client.webDav.ls(path))
           .where((f) => f.isDirectory)
           .map<Dir>((f) {
-        final isNew = !folders.contains(f.path);
+        final isNew = folders != null && !folders.contains(f.path);
         return Dir(f, isNew);
       }).toList();
-    } on RequestException {
+    } catch (e) {
+      print('Failed to get sub dirs: $e');
       if (retryCount < 5) {
         directories = await getSubDirs(path, retryCount: ++retryCount);
       }
