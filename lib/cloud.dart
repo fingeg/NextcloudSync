@@ -79,7 +79,7 @@ class Cloud {
     ];
   }
 
-  Future load(int index) async {
+  Future load(int index, EventBus eventBus) async {
     if (_isLoading[index]) {
       return;
     }
@@ -89,6 +89,7 @@ class Cloud {
     allPossibleDirs[index] =
         dirs.where((d) => !d.name.startsWith('vs-')).toList();
     _isLoading[index] = false;
+    eventBus.publish(index);
   }
 
   Future<List<int>> loadZip(String path, {int count = 0}) async {

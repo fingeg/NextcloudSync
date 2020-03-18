@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_event_bus/flutter_event_bus.dart';
-import 'package:nextcloud_sync/home_page.dart';
-import 'package:nextcloud_sync/login_page.dart';
+import 'package:nextcloud_sync/views/home_page.dart';
+import 'package:nextcloud_sync/views/login_page.dart';
 
 Future main() async {
   runApp(MyApp());
