@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:nextcloud_sync/keys.dart';
 import 'package:nextcloud_sync/static.dart';
-import 'package:package_info/package_info.dart';
 
 Future syncUsage() async {
   final username = Static.sharedPreferences.getString(Keys.username);
