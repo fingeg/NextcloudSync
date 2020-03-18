@@ -19,6 +19,7 @@ Future syncUsage() async {
       receiveTimeout: 3000,
     );
 
+  //TODO: Get app version
   final data = {
     'device': {
       'firebaseId': '-',

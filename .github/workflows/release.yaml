@@ -32,7 +32,6 @@ jobs:
         run: |
           sudo ln -sf /home/runner/flutter/bin/flutter /usr/bin/flutter
           flutter doctor -v
-          flutter config --enable-web
       - name: Get packages
         run: flutter pub get
       - name: Get hover source

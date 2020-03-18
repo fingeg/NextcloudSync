@@ -1,6 +1,6 @@
 name: nextcloud_sync
 description: A nextcloud sync programm for the Viktoriaschule Aachen
-version: 1.0.1+2
+version: 1.0.2+3
 
 environment:
   sdk: ">=2.7.0 <3.0.0"
