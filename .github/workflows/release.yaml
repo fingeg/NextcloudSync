@@ -1,0 +1,55 @@
+name: Release
+on:
+  push:
+    tags:
+      - 'v*'
+jobs:
+  release_artifacts:
+    name: Build release artifacts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-java@v1
+        with:
+          java-version: '12.x'
+      - uses: actions/setup-go@v1
+        with:
+          go-version: '1.13.x'
+      - name: Install required packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install libgl1-mesa-dev xorg-dev unzip imagemagick apt-transport-https ca-certificates curl gnupg-agent software-properties-common -y
+          sudo sh -c 'wget -qO- https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -'
+          sudo sh -c 'wget -qO- https://storage.googleapis.com/download.dartlang.org/linux/debian/dart_stable.list > /etc/apt/sources.list.d/dart_stable.list'
+          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+          sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu disco stable"
+          sudo apt-get update
+          sudo apt-get install dart docker-ce docker-ce-cli containerd.io -y
+          sudo ln -sf /usr/lib/dart/bin/pub /usr/bin/pub
+      - name: Get flutter source
+        run: git clone https://github.com/flutter/flutter /home/runner/flutter
+      - name: Build flutter
+        run: |
+          sudo ln -sf /home/runner/flutter/bin/flutter /usr/bin/flutter
+          flutter doctor -v
+      - name: Get packages
+        run: flutter pub get
+      - name: Get hover source
+        run: git clone https://github.com/go-flutter-desktop/hover /home/runner/hover
+      - name: Build hover
+        run: |
+          cd /home/runner/hover
+          go install
+          sudo ln -sf $(go env GOPATH)/bin/hover /usr/bin/hover
+          cd
+      - name: Install ghr
+        run: |
+          go get -u github.com/tcnksm/ghr
+          sudo ln -sf $(go env GOPATH)/bin/ghr /usr/bin/ghr
+      - name: Build desktop apps
+        run: ./scripts/build-desktop.sh --docker
+      - name: Upload release artifacts
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ghr "${GITHUB_REF##*/}" artifacts/
