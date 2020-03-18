@@ -43,6 +43,10 @@ jobs:
         run: |
           go get -u github.com/tcnksm/ghr
           sudo ln -sf $(go env GOPATH)/bin/ghr /usr/bin/ghr
+      - name: Set docker permissions
+        run: |
+          sudo usermod -aG docker runner
+          sudo setfacl -m user:runner:rw /var/run/docker.sock
       - name: Build desktop apps
         run: ./scripts/build-desktop.sh --docker
       - name: Upload release artifacts
