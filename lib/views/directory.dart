@@ -20,14 +20,30 @@ class _DirectoryWidgetState extends Interactor<DirectoryWidget> {
   Widget build(BuildContext context) {
     final dir = widget.directory;
     final name = dir.name;
+    String msg = '';
+    if (dir.isChanged) {
+      msg = 'Klicke zum Anschauen der Änderungen';
+    } else if (dir.failedDownload) {
+      msg = dir.failMsg;
+    } else if (dir.isLoading) {
+      msg = 'Atualisiert derzeit';
+    } else if (dir.isNew) {
+      msg = 'Neu erschienener Ordner';
+    } else {
+      switch (dir.state) {
+        case FileState.none:
+          msg = 'Klicke zum beobachten';
+          break;
+        case FileState.watching:
+          msg = 'Klicke um zu Downloads hinzuzufügen';
+          break;
+        case FileState.selected:
+          msg = 'Klicke um den Ordner zu irnorieren';
+          break;
+      }
+    }
     return Tooltip(
-      message: dir.failedDownload
-          ? dir.failMsg
-          : dir.state == FileState.none
-              ? 'Klicke zum beobachten'
-              : dir.state == FileState.watching
-                  ? 'Klicke um zu Downloads hinzuzufügen'
-                  : 'Klicke um den Ordner zu irnorieren',
+      message: msg,
       child: Container(
         height: 40,
         child: Stack(

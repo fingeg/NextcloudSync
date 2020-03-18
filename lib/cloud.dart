@@ -98,10 +98,10 @@ class Cloud {
       return null;
     }
     try {
-      return client.webDav.downloadDirectoryAsZip(path);
+      return await client.webDav.downloadDirectoryAsZip(path);
     } catch (e) {
       print('Failed to download zip: $path ($count)\n$e');
-      return loadZip(path, count: ++count);
+      return await loadZip(path, count: ++count);
     }
   }
 
@@ -142,7 +142,7 @@ class Cloud {
     } catch (e) {
       print('Failed to delete: $e');
       directory.failMsg =
-          'Kann die Datei nicht löschen. Schließe bitte alle Programme'
+          'Kann den Ordner nicht löschen. Schließe bitte alle Programme'
           ' in dem der Ordner verwendet wird';
       directory.isLoading = false;
       eventBus.publish(dir);
