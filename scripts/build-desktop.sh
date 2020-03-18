@@ -1,5 +1,4 @@
 #!/bin/bash
-cd app || cd ..
 flutter clean
 mkdir -p ../artifacts
 formats=("linux-appimage" "linux-deb" "linux-rpm" "windows-msi" "darwin-pkg" "darwin-dmg")
